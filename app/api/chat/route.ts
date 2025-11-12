@@ -1,4 +1,4 @@
-import { bedrock } from '@ai-sdk/amazon-bedrock';
+import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 import { smoothStream, streamText, convertToModelMessages } from 'ai';
@@ -11,6 +11,13 @@ import { replaceXMLParts } from "@/lib/utils";
 
 export const maxDuration = 60
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
+
+// Configure Bedrock with environment variables exported from SSO
+// Run ./refresh-aws-creds.sh to export your SSO credentials to .env.local
+// This is required because Next.js API routes can't access SSO cached credentials directly
+const bedrock = createAmazonBedrock({
+  region: process.env.AWS_REGION || 'us-west-2',
+});
 
 export async function POST(req: Request) {
   try {
@@ -129,7 +136,8 @@ ${lastMessageText}
       // model: google("gemini-2.5-pro"),
       // model: bedrock('anthropic.claude-sonnet-4-20250514-v1:0'),
       system: systemMessage,
-      model: bedrock('global.anthropic.claude-sonnet-4-5-20250929-v1:0'),
+      // Use inference profile for on-demand access to Claude Sonnet 4.5
+      model: bedrock('us.anthropic.claude-sonnet-4-5-20250929-v1:0'),
       // model: openrouter('moonshotai/kimi-k2:free'),
       // model: model,
       // providerOptions: {

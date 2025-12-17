@@ -59,6 +59,70 @@ The app supports 9 AI providers. Set `AI_PROVIDER` and the relevant API key in `
 
 See `env.example` for all configuration options.
 
+## Docker Development (Recommended)
+
+Docker avoids local Node version conflicts and includes a self-hosted draw.io instance.
+
+### Setup
+
+1. **Create `docker-compose.override.yml`** (already exists, gitignored):
+   ```yaml
+   services:
+     next-ai-draw-io:
+       volumes:
+         - ~/.aws:/home/nextjs/.aws:ro
+       environment:
+         - AWS_PROFILE=bedrock-users
+         - AWS_REGION=us-west-2
+         - AI_PROVIDER=bedrock
+         - AI_MODEL=us.anthropic.claude-sonnet-4-5-20250929-v1:0
+   ```
+
+2. **Create empty `.env` file** (required by base docker-compose.yml):
+   ```bash
+   touch .env
+   ```
+
+3. **Authenticate and run:**
+   ```bash
+   aws sso login --profile bedrock-users
+   docker compose up --build
+   ```
+
+### Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| next-ai-draw-io | 3000 | Main app |
+| drawio | 8081 | Self-hosted draw.io |
+
+### Commands
+
+```bash
+# Start (with rebuild)
+docker compose up --build
+
+# Start in background
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+
+# Force rebuild (after config changes)
+docker compose build --no-cache next-ai-draw-io
+```
+
+### Changing the Model
+
+Edit `docker-compose.override.yml` and set `AI_MODEL`:
+- `us.anthropic.claude-sonnet-4-5-20250929-v1:0` (Sonnet 4.5 - default)
+- `us.anthropic.claude-opus-4-5-20250929-v1:0` (Opus 4.5)
+- `us.anthropic.claude-sonnet-4-20250514-v1:0` (Sonnet 4)
+- `us.anthropic.claude-3-5-haiku-20241022-v1:0` (Haiku 3.5 - faster/cheaper)
+
 ## Architecture
 
 ### Core Flow
